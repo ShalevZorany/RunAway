@@ -36,14 +36,13 @@
             text-align: center;
             font-size: 30px;
             font-weight: bold;
-            /* הוספתי את הכיוון לשמאל-לימין */
-            direction: ltr;
+            direction: ltr; /* כיוון משמאל לימין */
         }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
-    <div id="question"></div>
+    <div id="question" dir="ltr"></div> <!-- הוספנו dir="ltr" -->
     <button id="restartButton">התחל מחדש</button>
     <script>
         // משתנים גלובליים
@@ -55,6 +54,9 @@
         canvas.height = height;
 
         let player = { x: width / 2, y: height - 50, width: 100, height: 20 };
+        let touchX = player.x;
+        let offsetY = 50; // מרחק של כ-1 סנטימטר מעל האצבע
+
         let answers = [];
         let score = 0;
         let timeSurvived = 0;
@@ -67,6 +69,7 @@
 
         function resetGame() {
             player.x = width / 2;
+            touchX = player.x;
             answers = [];
             score = 0;
             timeSurvived = 0;
@@ -119,28 +122,6 @@
 
             currentQuestion = { expression, answer };
             questionElement.innerText = 'מה התוצאה של: ' + expression + ' ?';
-
-            // יצירת תשובות
-            answers = [];
-            let correctAnswerAdded = false;
-            for (let i = 0; i < 5; i++) {
-                let isCorrect = false;
-                let value;
-                if (!correctAnswerAdded && Math.random() < 0.6) {
-                    value = answer;
-                    isCorrect = true;
-                    correctAnswerAdded = true;
-                } else {
-                    value = generateWrongAnswer(answer);
-                }
-                answers.push({ x: Math.random() * (width - 50), y: -Math.random() * 200, value, isCorrect });
-            }
-            if (!correctAnswerAdded) {
-                // להבטיח שהתשובה הנכונה קיימת
-                let index = Math.floor(Math.random() * answers.length);
-                answers[index].value = answer;
-                answers[index].isCorrect = true;
-            }
         }
 
         function generateWrongAnswer(correctAnswer) {
@@ -164,6 +145,9 @@
             // העלאת דרגת הקושי כל 50 נקודות
             difficulty = Math.floor(score / 50) + 1;
 
+            // עדכון מיקום השחקן מעל נקודת המגע
+            player.x = touchX;
+
             // עדכון תשובות
             for (let i = answers.length - 1; i >= 0; i--) {
                 let answer = answers[i];
@@ -179,6 +163,7 @@
                     answers.splice(i, 1);
                     if (!gameOver) {
                         generateQuestion();
+                        break; // לצאת מהלולאה כדי למנוע עדכונים נוספים
                     }
                 }
                 // אם התשובה הגיעה לתחתית המסך
@@ -213,6 +198,7 @@
             // ציור תשובות
             ctx.fillStyle = 'black';
             ctx.font = '24px Arial';
+            ctx.textAlign = 'center'; // מרכז את התשובות
             for (let answer of answers) {
                 ctx.fillText(answer.value, answer.x, answer.y);
             }
@@ -220,6 +206,7 @@
             // הצגת ניקוד וזמן
             ctx.fillStyle = 'black';
             ctx.font = '20px Arial';
+            ctx.textAlign = 'left'; // מוודא שהטקסט מיושר לשמאל
             ctx.fillText('נקודות: ' + score, 10, 30);
             ctx.fillText('זמן: ' + timeSurvived.toFixed(2), 10, 60);
 
@@ -228,7 +215,8 @@
                 ctx.fillRect(0, 0, width, height);
                 ctx.fillStyle = 'white';
                 ctx.font = '40px Arial';
-                ctx.fillText('Game Over', width / 2 - 100, height / 2);
+                ctx.textAlign = 'center';
+                ctx.fillText('Game Over', width / 2, height / 2);
             }
         }
 
@@ -250,13 +238,20 @@
         // שליטה במגע
         canvas.addEventListener('touchmove', function (e) {
             let touch = e.touches[0];
-            player.x = touch.clientX;
+            touchX = touch.clientX;
+            player.y = touch.clientY - offsetY; // הזזת השחקן מעל האצבע
             e.preventDefault();
+        });
+
+        // כאשר האצבע לא נוגעת במסך, השחקן נשאר במקום האחרון
+        canvas.addEventListener('touchend', function (e) {
+            // אפשר להוסיף קוד אם רוצים שהשחקן יחזור למיקום התחלתי
         });
 
         // שליטה בעכבר (למחשב)
         canvas.addEventListener('mousemove', function (e) {
-            player.x = e.clientX;
+            touchX = e.clientX;
+            player.y = e.clientY - offsetY; // הזזת השחקן מעל העכבר
         });
 
         // כפתור התחלה מחדש
