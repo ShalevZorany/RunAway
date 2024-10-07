@@ -14,10 +14,25 @@
             background: #f0f0f0;
             display: block;
         }
+        #restartButton {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px 40px;
+            font-size: 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
+    <button id="restartButton">התחל מחדש</button>
     <script>
         // משתנים גלובליים
         let canvas = document.getElementById('gameCanvas');
@@ -27,27 +42,40 @@
         canvas.width = width;
         canvas.height = height;
 
-        let player = { x: width / 2, y: height / 2, size: 20 };
+        let player = { x: width / 2, y: height / 2, size: 40 };
         let goodItems = [];
         let badItems = [];
         let score = 0;
         let timeSurvived = 0;
         let gameOver = false;
-        let speed = 2;
+        let speed = 5; // מהירות התחלתית גבוהה יותר
+        let restartButton = document.getElementById('restartButton');
+
+        function resetGame() {
+            player.x = width / 2;
+            player.y = height / 2;
+            goodItems = [];
+            badItems = [];
+            score = 0;
+            timeSurvived = 0;
+            gameOver = false;
+            speed = 5;
+            restartButton.style.display = 'none';
+        }
 
         // פונקציות לעדכון וציור המשחק
         function update() {
             if (gameOver) return;
 
             timeSurvived += 0.016;
-            speed += 0.0005; // העלאת המהירות עם הזמן
+            speed += 0.001; // העלאת המהירות עם הזמן
 
             // הוספת פריטים טובים ורעים
-            if (Math.random() < 0.02) {
-                goodItems.push({ x: Math.random() * width, y: -20, size: 15 });
+            if (Math.random() < 0.03) {
+                goodItems.push({ x: Math.random() * width, y: -20, size: 20 });
             }
-            if (Math.random() < 0.05) {
-                badItems.push({ x: Math.random() * width, y: -20, size: 20 });
+            if (Math.random() < 0.07) {
+                badItems.push({ x: Math.random() * width, y: -20, size: 25 });
             }
 
             // עדכון פריטים
@@ -62,12 +90,14 @@
                 item.y += speed;
                 if (isColliding(player, item)) {
                     gameOver = true;
+                    restartButton.style.display = 'block';
                 }
             }
 
             // בדיקת יציאת השחקן מהמסך
             if (player.x < 0 || player.x > width || player.y < 0 || player.y > height) {
                 gameOver = true;
+                restartButton.style.display = 'block';
             }
 
             // ניקוי פריטים מחוץ למסך
@@ -80,7 +110,15 @@
 
             // ציור השחקן
             ctx.fillStyle = 'blue';
-            ctx.fillRect(player.x - player.size / 2, player.y - player.size / 2, player.size, player.size);
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // עיגול חצי שקוף סביב השחקן
+            ctx.fillStyle = 'rgba(0, 0, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2);
+            ctx.fill();
 
             // ציור פריטים טובים
             ctx.fillStyle = 'green';
@@ -120,12 +158,10 @@
         }
 
         function isColliding(a, b) {
-            return (
-                a.x < b.x + b.size &&
-                a.x + a.size > b.x &&
-                a.y < b.y + b.size &&
-                a.y + a.size > b.y
-            );
+            let dx = a.x - b.x;
+            let dy = a.y - b.y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+            return distance < (a.size / 2 + b.size);
         }
 
         // שליטה במגע
@@ -140,6 +176,11 @@
         canvas.addEventListener('mousemove', function (e) {
             player.x = e.clientX;
             player.y = e.clientY;
+        });
+
+        // כפתור התחלה מחדש
+        restartButton.addEventListener('click', function () {
+            resetGame();
         });
 
         gameLoop();
