@@ -48,7 +48,7 @@
         let score = 0;
         let timeSurvived = 0;
         let gameOver = false;
-        let speed = 5; // מהירות התחלתית גבוהה יותר
+        let speed = 8; // מהירות התחלתית גבוהה יותר
         let restartButton = document.getElementById('restartButton');
 
         // משתנים לשמירת נקודת המגע
@@ -66,7 +66,7 @@
             score = 0;
             timeSurvived = 0;
             gameOver = false;
-            speed = 5;
+            speed = 8; // איפוס המהירות
             restartButton.style.display = 'none';
         }
 
@@ -75,17 +75,17 @@
             if (gameOver) return;
 
             timeSurvived += 0.016;
-            speed += 0.001; // העלאת המהירות עם הזמן
+            speed += 0.002; // העלאת המהירות עם הזמן
 
             // עדכון מיקום השחקן מעל נקודת המגע
             player.x = touchX;
             player.y = touchY - offsetY;
 
             // הוספת פריטים טובים ורעים
-            if (Math.random() < 0.03) {
+            if (Math.random() < 0.02) { // פריטים טובים פחות נפוצים
                 goodItems.push({ x: Math.random() * width, y: -20, size: 20 });
             }
-            if (Math.random() < 0.07) {
+            if (Math.random() < 0.1) { // פריטים רעים יותר נפוצים
                 badItems.push({ x: Math.random() * width, y: -20, size: 25 });
             }
 
