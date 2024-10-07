@@ -105,10 +105,12 @@
         function generateAnswers() {
             answers = [];
             let numberOfAnswers = 5;
+            let existingValues = new Set();
+            existingValues.add(currentQuestion.answer);
             // יצירת התשובות ללא מיקום
             answers.push({ value: currentQuestion.answer, isCorrect: true });
             for (let i = 1; i < numberOfAnswers; i++) {
-                let value = generateWrongAnswer(currentQuestion.answer);
+                let value = generateWrongAnswer(currentQuestion.answer, existingValues);
                 answers.push({ value: value, isCorrect: false });
             }
             // ערבוב התשובות
@@ -123,7 +125,7 @@
         }
 
         // פונקציה מתוקנת ליצירת תשובות שגויות
-        function generateWrongAnswer(correctAnswer) {
+        function generateWrongAnswer(correctAnswer, existingValues) {
             let wrongAnswer;
             let attempts = 0;
             do {
@@ -133,7 +135,7 @@
                     wrongAnswer = correctAnswer + attempts;
                     break;
                 }
-                let offset = Math.floor((Math.random() * 10 + 1) * difficulty);
+                let offset = Math.floor(Math.random() * (10 * difficulty) + 1);
                 let sign = Math.random() < 0.5 ? -1 : 1;
                 wrongAnswer = correctAnswer + sign * offset;
                 if (wrongAnswer < 0) {
@@ -141,8 +143,9 @@
                 }
             } while (
                 wrongAnswer === correctAnswer ||
-                answers.some(ans => ans.value === wrongAnswer)
+                existingValues.has(wrongAnswer)
             );
+            existingValues.add(wrongAnswer);
             return wrongAnswer;
         }
 
@@ -167,7 +170,6 @@
                 if (isColliding(player, answer)) {
                     if (answer.isCorrect) {
                         score += 10;
-                        answers.splice(i, 1);
                         generateQuestion(); // ליצור תרגיל חדש
                         generateAnswers();  // ליצור תשובות חדשות
                         break; // לצאת מהלולאה כדי למנוע עדכונים נוספים
