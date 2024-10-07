@@ -51,9 +51,16 @@
         let speed = 5; // מהירות התחלתית גבוהה יותר
         let restartButton = document.getElementById('restartButton');
 
+        // משתנים לשמירת נקודת המגע
+        let touchX = player.x;
+        let touchY = player.y;
+        let offsetY = 100; // מרחק ההזזה מעל האצבע
+
         function resetGame() {
             player.x = width / 2;
             player.y = height / 2;
+            touchX = player.x;
+            touchY = player.y;
             goodItems = [];
             badItems = [];
             score = 0;
@@ -69,6 +76,10 @@
 
             timeSurvived += 0.016;
             speed += 0.001; // העלאת המהירות עם הזמן
+
+            // עדכון מיקום השחקן מעל נקודת המגע
+            player.x = touchX;
+            player.y = touchY - offsetY;
 
             // הוספת פריטים טובים ורעים
             if (Math.random() < 0.03) {
@@ -167,15 +178,27 @@
         // שליטה במגע
         canvas.addEventListener('touchmove', function (e) {
             let touch = e.touches[0];
-            player.x = touch.clientX;
-            player.y = touch.clientY;
+            touchX = touch.clientX;
+            touchY = touch.clientY;
             e.preventDefault();
+        });
+
+        // כאשר האצבע לא נוגעת במסך, השחקן לא זז
+        canvas.addEventListener('touchend', function (e) {
+            touchX = player.x;
+            touchY = player.y + offsetY;
         });
 
         // שליטה בעכבר (למחשב)
         canvas.addEventListener('mousemove', function (e) {
-            player.x = e.clientX;
-            player.y = e.clientY;
+            touchX = e.clientX;
+            touchY = e.clientY;
+        });
+
+        // כאשר העכבר לא לוחץ, השחקן לא זז
+        canvas.addEventListener('mouseleave', function (e) {
+            touchX = player.x;
+            touchY = player.y + offsetY;
         });
 
         // כפתור התחלה מחדש
