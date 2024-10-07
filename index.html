@@ -36,7 +36,7 @@
             text-align: center;
             font-size: 30px;
             font-weight: bold;
-            direction: rtl; /* השארנו את הכיוון הכללי של הדף */
+            direction: rtl;
         }
     </style>
 </head>
@@ -53,9 +53,9 @@
         canvas.width = width;
         canvas.height = height;
 
-        let player = { x: width / 2, y: height - 100, width: 100, height: 20 }; // הזזתי את השחקן מעט למעלה
+        let player = { x: width / 2, y: height - 100, width: 100, height: 20 };
         let touchX = player.x;
-        let offsetY = 50; // מרחק של כ-1 סנטימטר מעל האצבע
+        let offsetY = 50; // מרחק מעל האצבע
 
         let answers = [];
         let score = 0;
@@ -78,6 +78,7 @@
             difficulty = 1;
             restartButton.style.display = 'none';
             generateQuestion();
+            generateAnswers();
         }
 
         // פונקציה ליצירת תרגיל מתמטי
@@ -102,7 +103,7 @@
                 case '-':
                     num1 = Math.floor(Math.random() * 10 * difficulty) + 1;
                     num2 = Math.floor(Math.random() * 10 * difficulty) + 1;
-                    if (num1 < num2) [num1, num2] = [num2, num1]; // להבטיח שהתוצאה לא תהיה שלילית
+                    if (num1 < num2) [num1, num2] = [num2, num1];
                     answer = num1 - num2;
                     expression = `${num1} - ${num2}`;
                     break;
@@ -115,7 +116,7 @@
                 case '/':
                     num2 = Math.floor(Math.random() * 10 * difficulty) + 1;
                     answer = Math.floor(Math.random() * 10 * difficulty) + 1;
-                    num1 = num2 * answer; // להבטיח שהתוצאה תהיה שלמה
+                    num1 = num2 * answer;
                     expression = `${num1} ÷ ${num2}`;
                     break;
             }
@@ -124,6 +125,25 @@
 
             // עדכון התרגיל עם עטיפת הביטוי ב-<span dir="ltr">
             questionElement.innerHTML = 'מה התוצאה של: <span dir="ltr">' + expression + '</span> ?';
+        }
+
+        // פונקציה ליצירת תשובות
+        function generateAnswers() {
+            answers = [];
+            let positions = [];
+            for (let i = 0; i < 5; i++) {
+                let isCorrect = i === 0; // רק תשובה אחת נכונה
+                let value = isCorrect ? currentQuestion.answer : generateWrongAnswer(currentQuestion.answer);
+                let x;
+                // להבטיח שהתשובות לא יתנגשו
+                do {
+                    x = Math.random() * (width - 50) + 25;
+                } while (positions.some(pos => Math.abs(pos - x) < 50));
+                positions.push(x);
+                answers.push({ x: x, y: -Math.random() * 200, value, isCorrect });
+            }
+            // ערבוב התשובות
+            answers.sort(() => Math.random() - 0.5);
         }
 
         function generateWrongAnswer(correctAnswer) {
@@ -160,6 +180,7 @@
                         score += 10;
                         answers.splice(i, 1);
                         generateQuestion(); // ליצור תרגיל חדש
+                        generateAnswers();  // ליצור תשובות חדשות
                         break; // לצאת מהלולאה כדי למנוע עדכונים נוספים
                     } else {
                         gameOver = true;
@@ -179,6 +200,11 @@
                         answers.splice(i, 1);
                     }
                 }
+            }
+
+            // אם כל התשובות נעלמו, ליצור חדשות
+            if (answers.length === 0 && !gameOver) {
+                generateAnswers();
             }
         }
 
@@ -249,7 +275,7 @@
         });
 
         // התחלת המשחק
-        generateQuestion();
+        resetGame();
         gameLoop();
     </script>
 </body>
