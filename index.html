@@ -133,24 +133,30 @@
         function generateAnswers() {
             answers = [];
             let numberOfAnswers = 5;
-            let spacing = width / numberOfAnswers;
-            for (let i = 0; i < numberOfAnswers; i++) {
-                let isCorrect = i === 0; // רק תשובה אחת נכונה
-                let value = isCorrect ? currentQuestion.answer : generateWrongAnswer(currentQuestion.answer);
-                let x = spacing / 2 + i * spacing;
-                answers.push({ x: x, y: -Math.random() * 200, value, isCorrect });
+            // יצירת התשובות ללא מיקום
+            answers.push({ value: currentQuestion.answer, isCorrect: true });
+            for (let i = 1; i < numberOfAnswers; i++) {
+                let value = generateWrongAnswer(currentQuestion.answer);
+                answers.push({ value: value, isCorrect: false });
             }
             // ערבוב התשובות
             answers.sort(() => Math.random() - 0.5);
+            // הקצאת מיקומים לאחר הערבוב
+            let spacing = width / numberOfAnswers;
+            for (let i = 0; i < numberOfAnswers; i++) {
+                let x = spacing / 2 + i * spacing;
+                answers[i].x = x;
+                answers[i].y = -Math.random() * 200;
+            }
         }
 
         function generateWrongAnswer(correctAnswer) {
             let offset = Math.floor((Math.random() * 10 + 1) * difficulty);
             let sign = Math.random() < 0.5 ? -1 : 1;
             let wrongAnswer = correctAnswer + sign * offset;
-            // להבטיח שהתשובה השגויה אינה שווה לתשובה הנכונה
-            if (wrongAnswer === correctAnswer) {
-                wrongAnswer += sign * 1;
+            // להבטיח שהתשובה השגויה אינה שווה לתשובה הנכונה או לתשובות אחרות
+            while (wrongAnswer === correctAnswer || answers.some(ans => ans.value === wrongAnswer)) {
+                wrongAnswer += sign * Math.floor(Math.random() * 5 + 1);
             }
             return wrongAnswer;
         }
