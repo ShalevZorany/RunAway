@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+    <meta charset="UTF-8">
+    <title>משחק התחמקות</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            touch-action: none;
+        }
+        canvas {
+            background: #f0f0f0;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        // משתנים גלובליים
+        let canvas = document.getElementById('gameCanvas');
+        let ctx = canvas.getContext('2d');
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+
+        let player = { x: width / 2, y: height / 2, size: 20 };
+        let goodItems = [];
+        let badItems = [];
+        let score = 0;
+        let timeSurvived = 0;
+        let gameOver = false;
+        let speed = 2;
+
+        // פונקציות לעדכון וציור המשחק
+        function update() {
+            if (gameOver) return;
+
+            timeSurvived += 0.016;
+            speed += 0.0005; // העלאת המהירות עם הזמן
+
+            // הוספת פריטים טובים ורעים
+            if (Math.random() < 0.02) {
+                goodItems.push({ x: Math.random() * width, y: -20, size: 15 });
+            }
+            if (Math.random() < 0.05) {
+                badItems.push({ x: Math.random() * width, y: -20, size: 20 });
+            }
+
+            // עדכון פריטים
+            for (let item of goodItems) {
+                item.y += speed;
+                if (isColliding(player, item)) {
+                    score += 10;
+                    goodItems.splice(goodItems.indexOf(item), 1);
+                }
+            }
+            for (let item of badItems) {
+                item.y += speed;
+                if (isColliding(player, item)) {
+                    gameOver = true;
+                }
+            }
+
+            // בדיקת יציאת השחקן מהמסך
+            if (player.x < 0 || player.x > width || player.y < 0 || player.y > height) {
+                gameOver = true;
+            }
+
+            // ניקוי פריטים מחוץ למסך
+            goodItems = goodItems.filter(item => item.y < height + item.size);
+            badItems = badItems.filter(item => item.y < height + item.size);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            // ציור השחקן
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(player.x - player.size / 2, player.y - player.size / 2, player.size, player.size);
+
+            // ציור פריטים טובים
+            ctx.fillStyle = 'green';
+            for (let item of goodItems) {
+                ctx.beginPath();
+                ctx.arc(item.x, item.y, item.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // ציור פריטים רעים
+            ctx.fillStyle = 'red';
+            for (let item of badItems) {
+                ctx.beginPath();
+                ctx.arc(item.x, item.y, item.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // הצגת ניקוד וזמן
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText('נקודות: ' + score, 10, 30);
+            ctx.fillText('זמן: ' + timeSurvived.toFixed(2), 10, 60);
+
+            if (gameOver) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, width, height);
+                ctx.fillStyle = 'white';
+                ctx.font = '40px Arial';
+                ctx.fillText('Game Over', width / 2 - 100, height / 2);
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function isColliding(a, b) {
+            return (
+                a.x < b.x + b.size &&
+                a.x + a.size > b.x &&
+                a.y < b.y + b.size &&
+                a.y + a.size > b.y
+            );
+        }
+
+        // שליטה במגע
+        canvas.addEventListener('touchmove', function (e) {
+            let touch = e.touches[0];
+            player.x = touch.clientX;
+            player.y = touch.clientY;
+            e.preventDefault();
+        });
+
+        // שליטה בעכבר (למחשב)
+        canvas.addEventListener('mousemove', function (e) {
+            player.x = e.clientX;
+            player.y = e.clientY;
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
