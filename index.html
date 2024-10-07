@@ -131,7 +131,6 @@
             do {
                 attempts++;
                 if (attempts > 100) {
-                    // אם יש יותר מדי ניסיונות, ניצור תשובה שגויה באופן ישיר
                     wrongAnswer = correctAnswer + attempts;
                     break;
                 }
@@ -154,46 +153,37 @@
             if (gameOver) return;
 
             timeSurvived += 0.016;
-            speed += 0.0005; // העלאת המהירות עם הזמן
+            speed += 0.0005;
 
-            // העלאת דרגת הקושי כל 50 נקודות
             difficulty = Math.floor(score / 50) + 1;
 
-            // עדכון מיקום השחקן מעל נקודת המגע
-            player.x = touchX;
+            player.x = Math.max(player.width / 2, Math.min(width - player.width / 2, touchX));
 
-            // עדכון תשובות
             for (let i = answers.length - 1; i >= 0; i--) {
                 let answer = answers[i];
                 answer.y += speed;
-                // בדיקת התנגשות עם השחקן
                 if (isColliding(player, answer)) {
                     if (answer.isCorrect) {
                         score += 10;
-                        generateQuestion(); // ליצור תרגיל חדש
-                        generateAnswers();  // ליצור תשובות חדשות
-                        break; // לצאת מהלולאה כדי למנוע עדכונים נוספים
+                        generateQuestion();
+                        generateAnswers();
+                        break;
                     } else {
                         gameOver = true;
                         restartButton.style.display = 'block';
                         break;
                     }
-                }
-                // אם התשובה הגיעה לתחתית המסך
-                else if (answer.y > height) {
+                } else if (answer.y > height) {
                     if (answer.isCorrect) {
-                        // החמצת התשובה הנכונה - המשחק נגמר
                         gameOver = true;
                         restartButton.style.display = 'block';
                         break;
                     } else {
-                        // תשובה שגויה החמיצה - אין בעיה
                         answers.splice(i, 1);
                     }
                 }
             }
 
-            // אם כל התשובות נעלמו, ליצור חדשות
             if (answers.length === 0 && !gameOver) {
                 generateAnswers();
             }
@@ -202,22 +192,19 @@
         function draw() {
             ctx.clearRect(0, 0, width, height);
 
-            // ציור השחקן
             ctx.fillStyle = 'blue';
             ctx.fillRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height);
 
-            // ציור תשובות
             ctx.fillStyle = 'black';
             ctx.font = '24px Arial';
-            ctx.textAlign = 'center'; // מרכז את התשובות
+            ctx.textAlign = 'center';
             for (let answer of answers) {
                 ctx.fillText(answer.value, answer.x, answer.y);
             }
 
-            // הצגת ניקוד וזמן
             ctx.fillStyle = 'black';
             ctx.font = '20px Arial';
-            ctx.textAlign = 'left'; // מוודא שהטקסט מיושר לשמאל
+            ctx.textAlign = 'left';
             ctx.fillText('נקודות: ' + score, 10, 30);
             ctx.fillText('זמן: ' + timeSurvived.toFixed(2), 10, 60);
 
@@ -246,26 +233,22 @@
             );
         }
 
-        // שליטה במגע
         canvas.addEventListener('touchmove', function (e) {
             let touch = e.touches[0];
             touchX = touch.clientX;
-            player.y = touch.clientY - offsetY; // הזזת השחקן מעל האצבע
+            player.y = Math.max(player.height / 2, Math.min(height - player.height / 2, touch.clientY - offsetY));
             e.preventDefault();
         });
 
-        // שליטה בעכבר (למחשב)
         canvas.addEventListener('mousemove', function (e) {
             touchX = e.clientX;
-            player.y = e.clientY - offsetY; // הזזת השחקן מעל העכבר
+            player.y = Math.max(player.height / 2, Math.min(height - player.height / 2, e.clientY - offsetY));
         });
 
-        // כפתור התחלה מחדש
         restartButton.addEventListener('click', function () {
             resetGame();
         });
 
-        // התחלת המשחק
         resetGame();
         gameLoop();
     </script>
