@@ -5,12 +5,17 @@
     <title>משחק מתמטי</title>
     <style>
         /* ... הסגנונות נשארים כפי שהיו ... */
+        #question {
+            font-size: 24px;
+            text-align: center;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
     <div id="question"></div>
-    <button id="restartButton">התחל מחדש</button>
+    <button id="restartButton" style="display: none;">התחל מחדש</button>
     <script>
         // משתנים גלובליים
         let canvas = document.getElementById('gameCanvas');
@@ -215,6 +220,7 @@
                 ctx.font = '40px Arial';
                 ctx.textAlign = 'center';
                 ctx.fillText('Game Over', width / 2, height / 2);
+                restartButton.style.display = 'block';
             }
         }
 
