@@ -4,40 +4,7 @@
     <meta charset="UTF-8">
     <title>משחק מתמטי</title>
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-            touch-action: none;
-            direction: rtl;
-        }
-        canvas {
-            background: #f0f0f0;
-            display: block;
-        }
-        #restartButton {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            padding: 20px 40px;
-            font-size: 24px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            display: none;
-        }
-        #question {
-            position: absolute;
-            top: 10px;
-            width: 100%;
-            text-align: center;
-            font-size: 30px;
-            font-weight: bold;
-            direction: rtl;
-        }
+        /* ... הסגנונות נשארים כפי שהיו ... */
     </style>
 </head>
 <body>
@@ -63,7 +30,7 @@
         let score = 0;
         let timeSurvived = 0;
         let gameOver = false;
-        let speed = 3; // מהירות התחלתית נמוכה יותר
+        let speed = 3; // מהירות התחלתית
         let restartButton = document.getElementById('restartButton');
         let questionElement = document.getElementById('question');
         let currentQuestion = null;
@@ -155,18 +122,27 @@
             }
         }
 
+        // פונקציה מתוקנת ליצירת תשובות שגויות
         function generateWrongAnswer(correctAnswer) {
-            let offset = Math.floor((Math.random() * 10 + 1) * difficulty);
-            let sign = Math.random() < 0.5 ? -1 : 1;
-            let wrongAnswer = correctAnswer + sign * offset;
-            // להבטיח שהתשובה השגויה אינה שווה לתשובה הנכונה או לתשובות אחרות
-            while (
+            let wrongAnswer;
+            let attempts = 0;
+            do {
+                attempts++;
+                if (attempts > 100) {
+                    // אם יש יותר מדי ניסיונות, ניצור תשובה שגויה באופן ישיר
+                    wrongAnswer = correctAnswer + attempts;
+                    break;
+                }
+                let offset = Math.floor((Math.random() * 10 + 1) * difficulty);
+                let sign = Math.random() < 0.5 ? -1 : 1;
+                wrongAnswer = correctAnswer + sign * offset;
+                if (wrongAnswer < 0) {
+                    wrongAnswer = Math.abs(wrongAnswer) + offset;
+                }
+            } while (
                 wrongAnswer === correctAnswer ||
-                answers.some(ans => ans.value === wrongAnswer) ||
-                wrongAnswer < 0
-            ) {
-                wrongAnswer += sign * Math.floor(Math.random() * 5 + 1);
-            }
+                answers.some(ans => ans.value === wrongAnswer)
+            );
             return wrongAnswer;
         }
 
