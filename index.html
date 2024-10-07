@@ -53,7 +53,7 @@
         canvas.width = width;
         canvas.height = height;
 
-        let player = { x: width / 2, y: height - 50, width: 100, height: 20 };
+        let player = { x: width / 2, y: height - 100, width: 100, height: 20 }; // הזזתי את השחקן מעט למעלה
         let touchX = player.x;
         let offsetY = 50; // מרחק של כ-1 סנטימטר מעל האצבע
 
@@ -122,6 +122,23 @@
 
             currentQuestion = { expression, answer };
             questionElement.innerText = 'מה התוצאה של: ' + expression + ' ?';
+
+            // יצירת תשובות
+            answers = [];
+            let positions = [];
+            for (let i = 0; i < 5; i++) {
+                let isCorrect = i === 0; // רק תשובה אחת נכונה
+                let value = isCorrect ? answer : generateWrongAnswer(answer);
+                let x;
+                // להבטיח שהתשובות לא יתנגשו
+                do {
+                    x = Math.random() * (width - 50) + 25;
+                } while (positions.some(pos => Math.abs(pos - x) < 50));
+                positions.push(x);
+                answers.push({ x: x, y: -Math.random() * 200, value, isCorrect });
+            }
+            // ערבוב התשובות
+            answers.sort(() => Math.random() - 0.5);
         }
 
         function generateWrongAnswer(correctAnswer) {
@@ -156,14 +173,13 @@
                 if (isColliding(player, answer)) {
                     if (answer.isCorrect) {
                         score += 10;
+                        answers.splice(i, 1);
+                        generateQuestion(); // ליצור תרגיל חדש
+                        break; // לצאת מהלולאה כדי למנוע עדכונים נוספים
                     } else {
                         gameOver = true;
                         restartButton.style.display = 'block';
-                    }
-                    answers.splice(i, 1);
-                    if (!gameOver) {
-                        generateQuestion();
-                        break; // לצאת מהלולאה כדי למנוע עדכונים נוספים
+                        break;
                     }
                 }
                 // אם התשובה הגיעה לתחתית המסך
@@ -172,19 +188,12 @@
                         // החמצת התשובה הנכונה - המשחק נגמר
                         gameOver = true;
                         restartButton.style.display = 'block';
+                        break;
                     } else {
                         // תשובה שגויה החמיצה - אין בעיה
                         answers.splice(i, 1);
                     }
-                    if (!gameOver && answers.length === 0) {
-                        generateQuestion();
-                    }
                 }
-            }
-
-            // אם אין תשובות על המסך, ליצור תרגיל חדש
-            if (answers.length === 0 && !gameOver) {
-                generateQuestion();
             }
         }
 
@@ -229,9 +238,9 @@
         function isColliding(a, b) {
             return (
                 a.x - a.width / 2 < b.x + 20 &&
-                a.x + a.width / 2 > b.x &&
+                a.x + a.width / 2 > b.x - 20 &&
                 a.y - a.height / 2 < b.y + 20 &&
-                a.y + a.height / 2 > b.y
+                a.y + a.height / 2 > b.y - 20
             );
         }
 
@@ -241,11 +250,6 @@
             touchX = touch.clientX;
             player.y = touch.clientY - offsetY; // הזזת השחקן מעל האצבע
             e.preventDefault();
-        });
-
-        // כאשר האצבע לא נוגעת במסך, השחקן נשאר במקום האחרון
-        canvas.addEventListener('touchend', function (e) {
-            // אפשר להוסיף קוד אם רוצים שהשחקן יחזור למיקום התחלתי
         });
 
         // שליטה בעכבר (למחשב)
